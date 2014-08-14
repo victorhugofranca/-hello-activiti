@@ -1,0 +1,163 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:composite="http://java.sun.com/jsf/composite">
+
+<!-- INTERFACE -->
+<composite:interface>
+</composite:interface>
+
+<!-- IMPLEMENTATION -->
+<composite:implementation
+	xmlns:bpm="http://java.sun.com/jsf/composite/component/bpm">
+
+	<f:metadata>
+		<f:event type="javax.faces.event.PreRenderViewEvent"
+			listener="#{processDefinitionsPanelAction.beginConversation}" />
+	</f:metadata>
+
+	<h:form id="processDefPanelId">
+	
+		<p:panelGrid columns="1">
+			<p:dataTable id="processDefinitionsTableId"
+				value="#{processDefinitionsPanelAction.processDefinitions}"
+				var="processDefinition">
+
+				<p:column>
+					<p:commandButton id="deleteProcessDefinitionButtonId"
+						value="Excluir"
+						action="#{processDefinitionsPanelAction.deleteDeployment(processDefinition.deploymentId)}"
+						update="processDefinitionsTableId, :#{cc.clientId}:processDefPanelId:processInstancesTableId, :#{cc.clientId}:processDefPanelId:historicTaskTableId, :#{cc.clientId}:processDefPanelId:historicVariableTableId, :#{cc.clientId}:processDefPanelId:imgProcessGraph" />
+
+					<p:commandButton id="newInstanceButtonId" value="Iniciar"
+						action="#{processDefinitionsPanelAction.startProcess(processDefinition.id)}"
+						update="messages, :#{cc.clientId}:processDefPanelId:processInstancesTableId, :#{cc.clientId}:processDefPanelId:historicTaskTableId, :#{cc.clientId}:processDefPanelId:historicVariableTableId, :#{cc.clientId}:processDefPanelId:imgProcessGraph" />
+
+					<p:commandButton id="showInstancesBtnId" value="Instâncias"
+						action="#{processDefinitionsPanelAction.loadProcessInstances(processDefinition.id)}"
+						update=":#{cc.clientId}:processDefPanelId:processInstancesTableId, :#{cc.clientId}:processDefPanelId:historicTaskTableId,:#{cc.clientId}:processDefPanelId:historicVariableTableId, :#{cc.clientId}:processDefPanelId:imgProcessGraph" />
+
+					<p:growl id="messages" for="processStartMessage" />
+				</p:column>
+
+				<p:column>
+					<f:facet name="header">
+						<p:outputLabel value="Processo" />
+					</f:facet>
+					<p:outputLabel value="#{processDefinition.name}" />
+				</p:column>
+
+				<p:column>
+					<f:facet name="header">
+						<p:outputLabel value="Descrição" />
+					</f:facet>
+					<p:outputLabel value="#{processDefinition.description}" />
+				</p:column>
+
+				<p:column>
+					<f:facet name="header">
+						<p:outputLabel value="Versão" />
+					</f:facet>
+					<p:outputLabel value="#{processDefinition.version}" />
+				</p:column>
+			</p:dataTable>
+
+			<p:dataTable id="processInstancesTableId"
+				value="#{processDefinitionsPanelAction.processInstances}"
+				var="processInstance">
+				<p:column>
+					<p:commandButton id="historicalTasksButtonId" value="Tasks"
+						action="#{processDefinitionsPanelAction.loadTaskHistory(processInstance.id)}"
+						update=":#{cc.clientId}:processDefPanelId:historicTaskTableId,:#{cc.clientId}:processDefPanelId:historicVariableTableId, :#{cc.clientId}:processDefPanelId:imgProcessGraph" />
+
+					<p:commandButton id="processDiagramButtonId" value="Gráfico"
+						ajax="false"
+						action="#{processImageAction.getActiveActivitiesDiagram(processInstance.getProcessDefinitionId(), processInstance.id)}" />
+				</p:column>
+
+				<p:column>
+					<f:facet name="header">
+						<p:outputLabel value="Número do Processo" />
+					</f:facet>
+					<p:outputLabel id="processInstanceLinkId"
+						value="#{processInstance.businessKey}" />
+				</p:column>
+			</p:dataTable>
+
+			<p:dataTable id="historicTaskTableId"
+				value="#{processDefinitionsPanelAction.historicTaskList}"
+				var="historicTaskInstance">
+
+				<p:column>
+					<p:commandButton id="historicalVariableButtonId" value="Variáveis"
+						action="#{processDefinitionsPanelAction.loadVariableHistory(historicTaskInstance.id)}"
+						update=":#{cc.clientId}:processDefPanelId:historicVariableTableId, :#{cc.clientId}:processDefPanelId:imgProcessGraph" />
+				</p:column>
+
+				<p:column>
+					<f:facet name="header">
+						<p:outputLabel value="Tarefa" />
+					</f:facet>
+					<p:outputLabel id="historicTaskNameId"
+						value="#{historicTaskInstance.name}" />
+				</p:column>
+
+				<p:column>
+					<f:facet name="header">
+						<p:outputLabel value="Responsável" />
+					</f:facet>
+					<p:outputLabel id="historicTaskAssigneeId"
+						value="#{historicTaskInstance.assignee}" />
+				</p:column>
+
+				<p:column>
+					<f:facet name="header">
+						<p:outputLabel value="Data de Início" />
+					</f:facet>
+					<p:outputLabel id="historicTaskStartId"
+						value="#{historicTaskInstance.startTime}" />
+				</p:column>
+
+				<p:column>
+					<f:facet name="header">
+						<p:outputLabel value="Data Fim" />
+					</f:facet>
+					<p:outputLabel id="historicTaskEndId"
+						value="#{historicTaskInstance.endTime}" />
+				</p:column>
+			</p:dataTable>
+
+			<p:dataTable id="historicVariableTableId"
+				value="#{processDefinitionsPanelAction.historicVariableList}"
+				var="historicVariableInstance">
+				<p:column>
+					<f:facet name="header">
+						<p:outputLabel value="Variável" />
+					</f:facet>
+					<p:outputLabel id="historicVariableNameId"
+						value="#{historicVariableInstance.variableName}" />
+				</p:column>
+				<p:column>
+					<f:facet name="header">
+						<p:outputLabel value="Valor" />
+					</f:facet>
+					<p:outputLabel id="historicVariableValueId"
+						value="#{historicVariableInstance.value}" />
+				</p:column>
+			</p:dataTable>
+
+			<p:graphicImage id="imgProcessGraph"
+				value="#{processImageAction.image}" />
+
+		</p:panelGrid>
+
+	</h:form>
+
+</composite:implementation>
+</html>
+

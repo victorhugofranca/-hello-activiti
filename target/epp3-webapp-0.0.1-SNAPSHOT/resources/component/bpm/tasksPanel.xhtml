@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:composite="http://java.sun.com/jsf/composite">
+
+<!-- INTERFACE -->
+<composite:interface>
+</composite:interface>
+
+<!-- IMPLEMENTATION -->
+<composite:implementation
+	xmlns:bpm="http://java.sun.com/jsf/composite/component/bpm">
+
+	<f:metadata>
+		<f:event type="javax.faces.event.PreRenderViewEvent"
+			listener="#{tasksPanelAction.beginConversation}" />
+	</f:metadata>
+
+
+	<h:form id="taskPanelFormId"
+		rendered="#{not tasksPanelAction.taskEditionMode}">
+		<p:layout id="processInstancesId">
+			<p:layoutUnit position="west">
+				<p:menu id="tasksMenuId" model="#{tasksPanelAction.tasksMenuModel}" />
+			</p:layoutUnit>
+			<p:layoutUnit position="center">
+				<p:dataTable id="processInstancesTableId"
+					value="#{tasksPanelAction.processInstances}" var="processInstance"
+					rendered="#{not empty tasksPanelAction.processInstances}">
+					<p:column>
+						<p:commandButton value="Editar" ajax="false"
+							action="#{tasksPanelAction.openTask(processInstance.id, processInstance.currentActivityId)}" />
+
+						<p:commandButton id="processDiagramButtonId" value="Gráfico"
+							ajax="false"
+							action="#{processImageAction.getActiveActivitiesDiagram(processInstance.getProcessDefinitionId(), processInstance.id)}" />
+					</p:column>
+					<p:column>
+						<f:facet name="header">Número</f:facet>
+						<p:outputLabel value="#{processInstance.businessKey}" />
+					</p:column>
+				</p:dataTable>
+				<p:graphicImage id="imgProcessGraph"
+					value="#{processImageAction.image}" />
+			</p:layoutUnit>
+		</p:layout>
+	</h:form>
+
+	<h:form id="taskPagePanel"
+		rendered="#{tasksPanelAction.taskEditionMode}">
+		<p:layout id="taskFormId">
+			<p:layoutUnit position="center">
+
+				<p:dataTable id="fieldSetDatatableId"
+					value="#{tasksPanelAction.formProperties}" var="field"
+					rendered="#{not empty tasksPanelAction.formProperties}">
+					<p:column>
+						<p:outputLabel value="#{field.name}" />
+					</p:column>
+					<p:column>
+						<bpm:formField field="#{field}" />
+					</p:column>
+				</p:dataTable>
+
+				<p:commandButton id="idButtonEndTask" value="Ok"
+					action="#{tasksPanelAction.endTask}" ajax="false"
+					rendered="#{not empty tasksPanelAction.formProperties}" />
+			</p:layoutUnit>
+		</p:layout>
+	</h:form>
+
+</composite:implementation>
+</html>
+

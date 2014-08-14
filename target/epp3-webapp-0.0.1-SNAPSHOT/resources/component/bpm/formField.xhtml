@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:composite="http://java.sun.com/jsf/composite">
+
+<!-- INTERFACE -->
+<composite:interface>
+	<composite:attribute name="field" />
+</composite:interface>
+
+<!-- IMPLEMENTATION -->
+<composite:implementation>
+
+	<div>
+		<p:inputText id="inputTextId"
+			rendered="#{cc.attrs.field.type.name == 'string'}"
+			value="#{cc.attrs.field.value}" />
+
+		<p:calendar id="dateTextId"
+			rendered="#{cc.attrs.field.type.name == 'date'}"
+			value="#{cc.attrs.field.value}">
+			<f:convertDateTime pattern="dd/MM/yyyy" />
+		</p:calendar>
+
+		<p:selectOneMenu id="selecOneMenuId"
+			rendered="#{cc.attrs.field.type.name == 'enum'}"
+			value="#{cc.attrs.field.value}">
+			<f:selectItems id="selectItemsId"
+				value="#{cc.attrs.field.type.getInformation('values').entrySet()}"
+				var="typeValue" itemLabel="#{typeValue.value}"
+				itemValue="#{typeValue.key}" />
+		</p:selectOneMenu>
+
+		<p:editor id="editorId"
+			rendered="#{cc.attrs.field.type.name == 'textEditor'}"
+			value="#{cc.attrs.field.value}" />
+	</div>
+
+</composite:implementation>
+</html>
+
+
+
