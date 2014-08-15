@@ -5,7 +5,7 @@
 	<bean id="processEngineConfiguration"
 		class="org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration">
 
-		<property name="jdbcUrl" value="jdbc:postgresql://localhost:5432/INFOX_EPP3" />
+		<property name="jdbcUrl" value="jdbc:postgresql://localhost:5432/hello_activiti" />
 		<property name="jdbcDriver" value="org.postgresql.Driver" />
 		<property name="jdbcUsername" value="postgres" />
 		<property name="jdbcPassword" value="postgres" />
