@@ -1,10 +1,12 @@
 package br.com.sigen.jdaf.business.security.entity;
 
 import java.io.Serializable;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity
@@ -15,6 +17,8 @@ public class Usuario implements Serializable {
 
 	private Integer idUsuario;
 	private String login;
+
+	private List<Endereco> enderecos;
 
 	@Id
 	@Column(name = "id_usuario")

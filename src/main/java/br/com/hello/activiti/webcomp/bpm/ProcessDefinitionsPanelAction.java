@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipInputStream;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
@@ -74,10 +73,9 @@ public class ProcessDefinitionsPanelAction implements Serializable {
 	}
 
 	public void handleFileUpload(FileUploadEvent event) {
-		System.out.println("aqui");
 		UploadedFile file = event.getFile();
 		try {
-			processService.deploy(new ZipInputStream(file.getInputstream()));
+			processService.deploy(file.getInputstream());
 			updateProcessDefinitions();
 			historicTaskList = new ArrayList<HistoricTaskInstance>();
 			historicVariableList = new ArrayList<HistoricVariableInstance>();

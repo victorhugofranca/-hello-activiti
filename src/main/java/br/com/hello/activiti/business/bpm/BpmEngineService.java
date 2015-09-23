@@ -16,7 +16,6 @@ import javax.ejb.Startup;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.ProcessEngineConfiguration;
-import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
@@ -25,15 +24,13 @@ import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.history.HistoricVariableInstance;
 import org.activiti.engine.impl.RepositoryServiceImpl;
-import org.activiti.engine.impl.bpmn.diagram.ProcessDiagramGenerator;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.impl.pvm.process.ActivityImpl;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.image.impl.DefaultProcessDiagramGenerator;
 
-@Startup
-@Singleton
 public class BpmEngineService {
 
 	private ProcessEngine processEngine;
@@ -82,7 +79,7 @@ public class BpmEngineService {
 			activitiesIds.add(historicActivityInstance.getActivityId());
 		}
 
-		return ProcessDiagramGenerator.generateDiagram(bpmnModel, "png",
+		return (new DefaultProcessDiagramGenerator()).generateDiagram(bpmnModel, "png",
 				activitiesIds);
 	}
 
@@ -95,6 +92,47 @@ public class BpmEngineService {
 				.createProcessDefinitionQuery().list();
 	}
 
+	public List<ActivityImpl> loadTaskDefinitions(String deploymentId)
+			throws Exception {
+
+		List<ProcessDefinition> processDefinitions = processEngine
+				.getRepositoryService().createProcessDefinitionQuery()
+				.deploymentId(deploymentId).list();
+
+		if (processDefinitions != null && !processDefinitions.isEmpty()) {
+			ProcessDefinition processDefinition = processDefinitions.get(0);
+
+			ProcessDefinitionEntity processDefinitionEntity = (ProcessDefinitionEntity) ((RepositoryServiceImpl) processEngine
+					.getRepositoryService())
+					.getDeployedProcessDefinition(((ProcessDefinition) processDefinition)
+							.getId());
+			return processDefinitionEntity.getActivities();
+		}
+
+		throw new Exception("Definição de processo não encontrada");
+
+	}
+
+	public List<String> loadHumanTasksNames(String deploymentId)
+			throws Exception {
+
+		List<String> tasksNames = new ArrayList<String>();
+
+		List<ActivityImpl> activities = loadTaskDefinitions(deploymentId);
+		Iterator<ActivityImpl> idActivity = activities.iterator();
+		while (idActivity.hasNext()) {
+			ActivityImpl activityImpl = idActivity.next();
+			String type = String.valueOf(activityImpl.getProperty("type"));
+			if (type.equals("userTask")) {
+				String name = String.valueOf(activityImpl.getProperty("name"));
+				tasksNames.add(name);
+			}
+		}
+
+		return tasksNames;
+
+	}
+
 	// ***********************************************************************************
 	// Deployment Methods
 	// ***********************************************************************************
@@ -103,9 +141,8 @@ public class BpmEngineService {
 		processEngine.getRepositoryService().deleteDeployment(deploymentId);
 	}
 
-	public void deploy(ZipInputStream zipInputStream) {
-		processEngine.getRepositoryService().createDeployment()
-				.addZipInputStream(zipInputStream).deploy();
+	public void deploy(InputStream zipInputStream) {
+		processEngine.getRepositoryService().createDeployment().addInputStream("MyProcess.bpmn20.xml", zipInputStream).deploy();
 	}
 
 	// ***********************************************************************************
@@ -122,7 +159,6 @@ public class BpmEngineService {
 		variables.put("employeeName", "kermit");
 		variables.put("numberOfDays", Integer.valueOf(4));
 		variables.put("vacationMotivation", "I'm really tired!");
-
 		RuntimeService runtimeService = processEngine.getRuntimeService();
 		return runtimeService.startProcessInstanceById(processDefId, String
 				.valueOf(Math.random()).replace("0.", ""), variables);
@@ -169,11 +205,11 @@ public class BpmEngineService {
 	// ***********************************************************************************
 
 	private List<Map<ActivityImpl, Long>> getTasksCounterList(
-			ProcessDefinitionEntity processDefinition) {
+			ProcessDefinitionEntity processDefinitionEntity) {
 
 		List<Map<ActivityImpl, Long>> tasksCounterList = new ArrayList<>();
 
-		for (ActivityImpl activity : processDefinition.getActivities()) {
+		for (ActivityImpl activity : processDefinitionEntity.getActivities()) {
 			String type = (String) activity.getProperty("type");
 			if (type.equals("userTask")) {
 				long tasksCounter = processEngine.getRuntimeService()
@@ -222,18 +258,78 @@ public class BpmEngineService {
 		return taskFormData.getFormProperties();
 	}
 
-	public static void main(String[] args) {
-		ProcessEngine processEngine = ProcessEngineConfiguration
-				.createProcessEngineConfigurationFromResource(
-						"activiti.cfg.xml").buildProcessEngine();
+	public static void main(String[] args) throws Exception {
 
-		RepositoryService repositoryService = processEngine
-				.getRepositoryService();
-		repositoryService.createDeployment()
-				.addClasspathResource("VacationRequest.bpmn20.xml").deploy();
+		BpmEngineService bpmEngineService = new BpmEngineService();
+		bpmEngineService.init();
 
-		System.out.println("Number of process definitions: "
-				+ repositoryService.createProcessDefinitionQuery().count());
+		Iterator<Execution> processInstanceIt = bpmEngineService
+				.getProcessInstancesByActivityId("handleRequest").iterator();
+		while (processInstanceIt.hasNext()) {
+			ProcessInstance processInstance = (ProcessInstance) processInstanceIt
+					.next();
+			System.out.println(processInstance.getBusinessKey());
+		}
+
+		// List<ActivityImpl> tasks =
+		// bpmEngineService.loadTaskDefinitions("201");
+		//
+		// Iterator<Execution> it =
+		// bpmEngineService.getProcessInstancesByActivityId(tasks.get(0).getId()).iterator();
+		// while (it.hasNext()) {
+		// Execution execution = (Execution) it.next();
+		// System.out.println(execution);
+		// }
+
+		// while (processDefinitionsIt.hasNext()) {
+		// ProcessDefinition processDefinition = (ProcessDefinition)
+		// processDefinitionsIt
+		// .next();
+		// System.out.println("ID: " + processDefinition.getId());
+		// System.out.println("Category: " + processDefinition.getCategory());
+		// System.out.println("Deployment ID: "
+		// + processDefinition.getDeploymentId());
+		// System.out.println("Description: "
+		// + processDefinition.getDescription());
+		// System.out.println("Version: " + processDefinition.getVersion());
+		//
+		// }
+		//
+		// ProcessDefinition processDefiniton = processDefinitions.get(0);
+		//
+		// try {
+		// List<ActivityImpl> activities = bpmEngineService
+		//
+		// .loadTaskDefinitions(processDefiniton.getDeploymentId());
+		// Iterator<ActivityImpl> idActivity = activities.iterator();
+		// while (idActivity.hasNext()) {
+		// ActivityImpl activityImpl = idActivity.next();
+		// Map<String, Object> properties = activityImpl.getProperties();
+		// Iterator<String> keysIt = properties.keySet().iterator();
+		// while (keysIt.hasNext()) {
+		// String key = (String) keysIt.next();
+		// System.out.println(key + ", " + properties.get(key));
+		// }
+		// }
+		// } catch (Exception e) {
+		// e.printStackTrace();
+		// }
+
+		// List<HistoricVariableInstance> historicVariableInstanceList =
+		// processEngine
+		// .getHistoryService().createHistoricVariableInstanceQuery()
+		// .variableName("usuario").list();
+		// Iterator<HistoricVariableInstance> it = historicVariableInstanceList
+		// .iterator();
+		// while (it.hasNext()) {
+		// HistoricVariableInstance var = it.next();
+		// System.out.println(((Usuario) var.getValue()).getLogin());
+		// if (((Usuario) var.getValue()).getEnderecos() != null) {
+		// System.out.println(((Usuario) var.getValue()).getEnderecos()
+		// .get(0).getLogradouro());
+		// }
+		//
+		// }
 
 	}
 

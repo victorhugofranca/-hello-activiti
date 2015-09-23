@@ -45,8 +45,7 @@ public class ManterUsuarioAction implements Serializable {
 			@Override
 			public List<Usuario> load(int pageIndex, int pageSize,
 					String sortField, SortOrder sortOrder,
-					Map<String, String> filters) {
-
+					Map<String, Object> filters) {
 				try {
 					users.setRowCount(usuarioService.count());
 					return usuarioService.load(pageIndex, pageSize);
