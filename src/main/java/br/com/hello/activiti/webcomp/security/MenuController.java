@@ -25,16 +25,8 @@ public class MenuController implements Serializable {
 	public MenuController() {
 		menuModel = new DefaultMenuModel();
 
-		menuModel.addElement(gerarSubmenuHome());
 		menuModel.addElement(gerarSubmenuProcessos());
-		menuModel.addElement(gerarSubmenuControleAcesso());
 		menuModel.addElement(gerarSubmenuPainel());
-	}
-
-	private Submenu gerarSubmenuHome() {
-		DefaultSubMenu submenuTarefas = createSubMenu(MENU_ITEM + "HomeId",
-				"Home");
-		return submenuTarefas;
 	}
 
 	private Submenu gerarSubmenuProcessos() {
@@ -57,16 +49,6 @@ public class MenuController implements Serializable {
 
 		submenuTarefas.addElement(mi);
 		return submenuTarefas;
-	}
-
-	private Submenu gerarSubmenuControleAcesso() {
-		DefaultSubMenu submenuControleAcesso = createSubMenu(MENU_ITEM
-				+ "ControleAcessoId", "Controle de Acesso");
-
-		DefaultMenuItem mi = createMenuItem(MENU_ITEM + "UsuariosId",
-				"Usuários", "/usuario/list.faces");
-		submenuControleAcesso.addElement(mi);
-		return submenuControleAcesso;
 	}
 
 	public MenuModel getMenuModel() {

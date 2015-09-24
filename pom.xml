@@ -130,6 +130,10 @@
 		</dependency>
 	</dependencies>
 
+	<scm>
+		<connection>scm:git:https://github.com/victorhugofranca/-hello-activiti</connection>
+	</scm>
+
 	<repositories>
 		<repository>
 			<id>prime-repo</id>
