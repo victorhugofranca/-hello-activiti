@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.activiti.bpmn.model.BpmnModel;
@@ -34,13 +33,18 @@ import org.activiti.image.impl.DefaultProcessDiagramGenerator;
 @Named
 public class BpmEngineService implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private ProcessEngine processEngine;
 
 	@PostConstruct
 	private void init() {
-		processEngine = ProcessEngineConfiguration
+		setProcessEngine(ProcessEngineConfiguration
 				.createProcessEngineConfigurationFromResource(
-						"activiti.cfg.xml").buildProcessEngine();
+						"activiti.cfg.xml").buildProcessEngine());
 	}
 
 	// ***********************************************************************************
@@ -49,13 +53,13 @@ public class BpmEngineService implements Serializable {
 
 	public List<HistoricVariableInstance> loadVariableHistoryByTaskId(
 			String taskId) {
-		return processEngine.getHistoryService()
+		return getProcessEngine().getHistoryService()
 				.createHistoricVariableInstanceQuery().taskId(taskId).list();
 	}
 
 	public List<HistoricTaskInstance> loadTasksHistoryByProcessInstanceId(
 			String processInstanceId) {
-		return processEngine.getHistoryService()
+		return getProcessEngine().getHistoryService()
 				.createHistoricTaskInstanceQuery()
 				.processInstanceId(processInstanceId).list();
 	}
@@ -67,10 +71,10 @@ public class BpmEngineService implements Serializable {
 	public InputStream loadDiagramByProcDefAndProcInst(
 			String processDefinitionId, String processInstanceId) {
 
-		BpmnModel bpmnModel = processEngine.getRepositoryService()
+		BpmnModel bpmnModel = getProcessEngine().getRepositoryService()
 				.getBpmnModel(processDefinitionId);
 
-		List<HistoricActivityInstance> historicActivities = processEngine
+		List<HistoricActivityInstance> historicActivities = getProcessEngine()
 				.getHistoryService().createHistoricActivityInstanceQuery()
 				.processInstanceId(processInstanceId).list();
 		List<String> activitiesIds = new ArrayList<String>();
@@ -89,21 +93,21 @@ public class BpmEngineService implements Serializable {
 	// ***********************************************************************************
 
 	public List<ProcessDefinition> loadProcessDefinitions() {
-		return processEngine.getRepositoryService()
+		return getProcessEngine().getRepositoryService()
 				.createProcessDefinitionQuery().list();
 	}
 
 	public List<ActivityImpl> loadTaskDefinitions(String deploymentId)
 			throws Exception {
 
-		List<ProcessDefinition> processDefinitions = processEngine
+		List<ProcessDefinition> processDefinitions = getProcessEngine()
 				.getRepositoryService().createProcessDefinitionQuery()
 				.deploymentId(deploymentId).list();
 
 		if (processDefinitions != null && !processDefinitions.isEmpty()) {
 			ProcessDefinition processDefinition = processDefinitions.get(0);
 
-			ProcessDefinitionEntity processDefinitionEntity = (ProcessDefinitionEntity) ((RepositoryServiceImpl) processEngine
+			ProcessDefinitionEntity processDefinitionEntity = (ProcessDefinitionEntity) ((RepositoryServiceImpl) getProcessEngine()
 					.getRepositoryService())
 					.getDeployedProcessDefinition(((ProcessDefinition) processDefinition)
 							.getId());
@@ -139,11 +143,12 @@ public class BpmEngineService implements Serializable {
 	// ***********************************************************************************
 
 	public void deleteDeployment(String deploymentId) {
-		processEngine.getRepositoryService().deleteDeployment(deploymentId);
+		getProcessEngine().getRepositoryService()
+				.deleteDeployment(deploymentId);
 	}
 
 	public void deploy(InputStream zipInputStream) {
-		processEngine.getRepositoryService().createDeployment()
+		getProcessEngine().getRepositoryService().createDeployment()
 				.addInputStream("MyProcess.bpmn20.xml", zipInputStream)
 				.deploy();
 	}
@@ -153,7 +158,7 @@ public class BpmEngineService implements Serializable {
 	// ***********************************************************************************
 
 	public void deleteProcessInstance(String processInstanceId, String reason) {
-		processEngine.getRuntimeService().deleteProcessInstance(
+		getProcessEngine().getRuntimeService().deleteProcessInstance(
 				processInstanceId, reason);
 	}
 
@@ -162,19 +167,19 @@ public class BpmEngineService implements Serializable {
 		variables.put("employeeName", "kermit");
 		variables.put("numberOfDays", Integer.valueOf(4));
 		variables.put("vacationMotivation", "I'm really tired!");
-		RuntimeService runtimeService = processEngine.getRuntimeService();
+		RuntimeService runtimeService = getProcessEngine().getRuntimeService();
 		return runtimeService.startProcessInstanceById(processDefId, String
 				.valueOf(Math.random()).replace("0.", ""), variables);
 	}
 
 	public List<Execution> getProcessInstancesByActivityId(String activityId) {
-		return processEngine.getRuntimeService().createExecutionQuery()
+		return getProcessEngine().getRuntimeService().createExecutionQuery()
 				.activityId(activityId).list();
 	}
 
 	public List<Execution> getProcessInstancesByProcessDefinitionId(
 			String processDefinitionId) {
-		return processEngine.getRuntimeService().createExecutionQuery()
+		return getProcessEngine().getRuntimeService().createExecutionQuery()
 				.processDefinitionId(processDefinitionId).list();
 	}
 
@@ -182,14 +187,14 @@ public class BpmEngineService implements Serializable {
 
 		List<Map<ActivityImpl, Long>> tasksCounterList = new ArrayList<>();
 
-		List<ProcessDefinition> processDefinitions = processEngine
+		List<ProcessDefinition> processDefinitions = getProcessEngine()
 				.getRepositoryService().createProcessDefinitionQuery().active()
 				.list();
 
 		for (Iterator<ProcessDefinition> iterator = processDefinitions
 				.iterator(); iterator.hasNext();) {
 
-			ProcessDefinitionEntity processDefinition = (ProcessDefinitionEntity) ((RepositoryServiceImpl) processEngine
+			ProcessDefinitionEntity processDefinition = (ProcessDefinitionEntity) ((RepositoryServiceImpl) getProcessEngine()
 					.getRepositoryService())
 					.getDeployedProcessDefinition(((ProcessDefinition) iterator
 							.next()).getId());
@@ -215,7 +220,7 @@ public class BpmEngineService implements Serializable {
 		for (ActivityImpl activity : processDefinitionEntity.getActivities()) {
 			String type = (String) activity.getProperty("type");
 			if (type.equals("userTask")) {
-				long tasksCounter = processEngine.getRuntimeService()
+				long tasksCounter = getProcessEngine().getRuntimeService()
 						.createExecutionQuery().activityId(activity.getId())
 						.count();
 
@@ -229,7 +234,7 @@ public class BpmEngineService implements Serializable {
 
 	public void endTask(String processInstanceId, String taskDefId,
 			List<FormProperty> formProperties) {
-		String taskId = processEngine.getTaskService().createTaskQuery()
+		String taskId = getProcessEngine().getTaskService().createTaskQuery()
 				.processInstanceId(processInstanceId)
 				.taskDefinitionKey(taskDefId).list().get(0).getId();
 
@@ -241,7 +246,7 @@ public class BpmEngineService implements Serializable {
 			variables.put(formProperty.getId(), formProperty.getValue());
 		}
 
-		TaskService taskService = processEngine.getTaskService();
+		TaskService taskService = getProcessEngine().getTaskService();
 
 		taskService.setVariablesLocal(taskId, variables);
 		taskService.complete(taskId, variables);
@@ -252,13 +257,21 @@ public class BpmEngineService implements Serializable {
 	// ***********************************************************************************
 
 	public List<FormProperty> getFormProperties(String taskDefId) {
-		String taskId = processEngine.getTaskService().createTaskQuery()
+		String taskId = getProcessEngine().getTaskService().createTaskQuery()
 				.taskDefinitionKey(taskDefId).list().get(0).getId();
 
-		TaskFormData taskFormData = processEngine.getFormService()
+		TaskFormData taskFormData = getProcessEngine().getFormService()
 				.getTaskFormData(taskId);
 
 		return taskFormData.getFormProperties();
+	}
+
+	public ProcessEngine getProcessEngine() {
+		return processEngine;
+	}
+
+	public void setProcessEngine(ProcessEngine processEngine) {
+		this.processEngine = processEngine;
 	}
 
 	public static void main(String[] args) throws Exception {
