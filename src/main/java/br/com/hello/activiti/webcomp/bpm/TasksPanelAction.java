@@ -32,7 +32,7 @@ public class TasksPanelAction implements Serializable {
 	@Inject
 	private Conversation conversation;
 
-	@EJB
+	@Inject
 	private BpmEngineService processService;
 
 	private MenuModel tasksMenuModel;

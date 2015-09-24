@@ -1,17 +1,17 @@
 package br.com.hello.activiti.business.bpm;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipInputStream;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.engine.ProcessEngine;
@@ -31,7 +31,8 @@ import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.image.impl.DefaultProcessDiagramGenerator;
 
-public class BpmEngineService {
+@Named
+public class BpmEngineService implements Serializable {
 
 	private ProcessEngine processEngine;
 
@@ -79,8 +80,8 @@ public class BpmEngineService {
 			activitiesIds.add(historicActivityInstance.getActivityId());
 		}
 
-		return (new DefaultProcessDiagramGenerator()).generateDiagram(bpmnModel, "png",
-				activitiesIds);
+		return (new DefaultProcessDiagramGenerator()).generateDiagram(
+				bpmnModel, "png", activitiesIds);
 	}
 
 	// ***********************************************************************************
@@ -142,7 +143,9 @@ public class BpmEngineService {
 	}
 
 	public void deploy(InputStream zipInputStream) {
-		processEngine.getRepositoryService().createDeployment().addInputStream("MyProcess.bpmn20.xml", zipInputStream).deploy();
+		processEngine.getRepositoryService().createDeployment()
+				.addInputStream("MyProcess.bpmn20.xml", zipInputStream)
+				.deploy();
 	}
 
 	// ***********************************************************************************

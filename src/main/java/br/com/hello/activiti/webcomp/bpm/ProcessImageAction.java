@@ -3,8 +3,8 @@ package br.com.hello.activiti.webcomp.bpm;
 import java.io.InputStream;
 import java.io.Serializable;
 
-import javax.ejb.EJB;
 import javax.enterprise.context.SessionScoped;
+import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.primefaces.model.DefaultStreamedContent;
@@ -18,7 +18,7 @@ public class ProcessImageAction implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@EJB
+	@Inject
 	private BpmEngineService processService;
 
 	private StreamedContent image;

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
 import javax.enterprise.context.Conversation;
 import javax.enterprise.context.ConversationScoped;
 import javax.faces.application.FacesMessage;
@@ -33,7 +32,7 @@ public class ProcessDefinitionsPanelAction implements Serializable {
 	@Inject
 	private Conversation conversation;
 
-	@EJB
+	@Inject
 	private BpmEngineService processService;
 
 	private List<ProcessDefinition> processDefinitions;
